@@ -1,0 +1,27 @@
+# permissions for end users to view caches.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: cache-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: opencas-csi-operator
+    app.kubernetes.io/part-of: opencas-csi-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: cache-viewer-role
+rules:
+- apiGroups:
+  - csi.open-cas.com
+  resources:
+  - caches
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - csi.open-cas.com
+  resources:
+  - caches/status
+  verbs:
+  - get

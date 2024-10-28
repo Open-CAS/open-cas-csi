@@ -1,0 +1,79 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.12.0
+  name: caches.csi.open-cas.com
+spec:
+  group: csi.open-cas.com
+  names:
+    kind: Cache
+    listKind: CacheList
+    plural: caches
+    singular: cache
+  scope: Cluster
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Cache is the Schema for the caches API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: CacheSpec defines the desired state of Cache
+            properties:
+              cacheLineSize:
+                description: 'CacheLizeSize configures the size of a cache line in
+                  kibibytes Allowed values: {4,8,16,32,64}[KiB] (default: 4)'
+                enum:
+                - 4
+                - 8
+                - 16
+                - 32
+                - 64
+                type: integer
+              cacheMode:
+                description: 'CacheMode configures the general caching algorithm Allowed
+                  values: {wt, wa, pt} (default: wt)'
+                enum:
+                - wt
+                - wa
+                - pt
+                type: string
+              deviceById:
+                description: DeviceById defines the block device to be used as cache.
+                  Path must be provided as a by-id link path in /dev/disk/by-id dir.
+                pattern: ^\/dev\/disk\/by-id\/\S+$
+                type: string
+            required:
+            - deviceById
+            type: object
+          status:
+            description: CacheStatus defines the observed state of Cache
+            properties:
+              cacheId:
+                description: Indicates which Cache Id is to be used in cache ops.
+                type: integer
+              ready:
+                description: Indicates that the requested Cache structure is ready.
+                type: boolean
+            required:
+            - ready
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

@@ -1,0 +1,14 @@
+apiVersion: csi.open-cas.com/v1alpha1
+kind: Cache
+metadata:
+  labels:
+    app.kubernetes.io/name: cache
+    app.kubernetes.io/instance: cache-sample
+    app.kubernetes.io/part-of: opencas-csi-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: opencas-csi-operator
+  name: cache-node  # <node-name>
+spec:
+  deviceById: /dev/disk/by-id/link  # proper by-id link to a device
+  cacheMode: wt  # (optional) caching algorithm, allowed: wt (default), wa
+  cacheLineSize: 4  # (optional) siza of a cache line in KiB, allowed: 4 (default), 8, 16, 32, 64

@@ -1,0 +1,21 @@
+apiVersion: csi.open-cas.com/v1alpha1
+kind: DriverInstance
+metadata:
+  labels:
+    app.kubernetes.io/name: driverinstance
+    app.kubernetes.io/instance: driverinstance-autoinstalled
+    app.kubernetes.io/part-of: opencas-csi-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: opencas-csi-operator
+  name: csi.open-cas.com
+spec:
+  logLevel: 5
+  nodeSelector:
+    kubernetes.io/os: linux
+    #SELECTOR
+  driverConfig:
+    casadmImage: "CASADM_IMAGE"
+    driverImage: "DRIVER_IMAGE"
+    driverNamespace: opencas-csi-driver
+    protectedNamespace: opencas-csi-protected
+    webhookImage: "WEBHOOK_IMAGE"

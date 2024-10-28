@@ -1,0 +1,23 @@
+# CA_CERTS lines are replaced by make/deploy scripts
+#FROM_CA_CERTS
+FROM ubuntu as builder
+
+ARG http_proxy
+ARG https_proxy
+ARG OPENCAS_VERSION="v24.9"
+
+RUN apt-get update && apt-get install -y make gcc git
+#COPY_CA_CERTS
+#INSTALL_CA_CERTS
+
+RUN git clone --depth=1 --branch ${OPENCAS_VERSION} https://github.com/Open-CAS/open-cas-linux.git \
+    || git clone https://github.com/Open-CAS/open-cas-linux.git && cd open-cas-linux && git checkout ${OPENCAS_VERSION}
+
+WORKDIR /open-cas-linux
+RUN git submodule update --init ocf
+RUN cd tools && ./cas_version_gen.sh
+RUN cd casadm && make -j
+
+FROM ubuntu
+
+COPY --from=builder /open-cas-linux/casadm/casadm /usr/sbin/casadm

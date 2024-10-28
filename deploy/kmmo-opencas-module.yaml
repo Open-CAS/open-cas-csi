@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: opencas-module
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opencas-module-dockerfile
+  namespace : opencas-module
+data:
+  dockerfile: |
+    #FROM_CA_CERTS
+    FROM ubuntu as builder
+
+    ARG KERNEL_VERSION
+    ARG VERSION
+
+    RUN apt-get update && \
+        apt-get install -y \
+        make \
+        gcc \
+        git \
+        linux-headers-${KERNEL_VERSION} \
+        python3
+    #COPY_CA_CERTS
+    #INSTALL_CA_CERTS
+    
+    RUN git clone --depth=1 --branch ${VERSION} https://github.com/Open-CAS/open-cas-linux.git \
+        || git clone https://github.com/Open-CAS/open-cas-linux.git && cd open-cas-linux && git checkout ${VERSION}
+
+    WORKDIR /open-cas-linux
+    RUN git submodule update --init ocf
+
+    RUN sed -i 's/utils//g' Makefile \
+        && sed -i 's/^.*MODPROBE.*$//g' modules/Makefile
+
+    RUN ./configure
+    RUN make -j
+
+    FROM ubuntu
+
+    ARG KERNEL_VERSION
+
+    RUN apt-get update && apt-get install -y kmod
+
+    COPY --from=builder /open-cas-linux/modules/cas_cache/cas_cache.ko /opt/lib/modules/${KERNEL_VERSION}/extra/block/opencas/
+    COPY --from=builder /open-cas-linux/casadm/casadm /usr/sbin/casadm
+
+    RUN depmod -b /opt ${KERNEL_VERSION}
+---
+apiVersion: kmm.sigs.x-k8s.io/v1beta1
+kind: Module
+metadata:
+  name: opencas-module
+  namespace: opencas-module
+spec:
+  moduleLoader:
+    container:
+      modprobe:
+        moduleName: cas_cache  # Required
+      imagePullPolicy: Always  # Optional
+      kernelMappings:  # At least one item is required
+        # For any kernel, build the image using the Dockerfile in the ConfigMap.
+        - regexp: '^.+$'
+          containerImage: "REGISTRY/opencas-module:${KERNEL_FULL_VERSION}" # Ready image will be uploaded and accessible in this location
+          build:
+            buildArgs:  # Optional arguments passed to build environment, e.g. proxy
+              - name: VERSION
+                value: OPENCAS_VERSION
+              - name: http_proxy
+                value: HTTP_PROXY
+              - name: https_proxy
+                value: HTTPS_PROXY
+            #secrets:  # Optional
+            #  - name: some-kubernetes-secret  # Will be available in the build environment at /run/secrets/some-kubernetes-secret.
+            baseImageRegistryTLS:
+              # Optional and not recommended! If true, the build will be allowed to pull the image in the Dockerfile's
+              # FROM instruction using plain HTTP.
+              insecure: false
+              # Optional and not recommended! If true, the build will skip any TLS server certificate validation when
+              # pulling the image in the Dockerfile's FROM instruction using plain HTTP.
+              insecureSkipTLSVerify: false
+            dockerfileConfigMap:  # Required
+              name: opencas-module-dockerfile
+          registryTLS:
+            # Optional and not recommended! If true, KMM will be allowed to check if the container image already exists
+            # using plain HTTP.
+            insecure: false
+            # Optional and not recommended! If true, KMM will skip any TLS server certificate validation when checking if
+            # the container image already exists.
+            insecureSkipTLSVerify: false
+  selector:
+    SELECTOR # kernel module will be built/deployed for the selected nodes

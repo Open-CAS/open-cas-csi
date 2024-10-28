@@ -1,0 +1,40 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: "SERVICE.NAMESPACE.svc.cluster.local"
+webhooks:
+  - name: "SERVICE.NAMESPACE.svc.cluster.local"
+    namespaceSelector:
+      matchExpressions:
+      - key: csi.open-cas.com/protected
+        operator: Exists
+    rules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["DELETE"]
+        resources: ["namespaces"]
+        scope: "Cluster"
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["DELETE"]
+        resources: ["pods"]
+        scope: "Namespaced"
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["DELETE"]
+        resources: ["persistentvolumeclaims"]
+        scope: "Namespaced"
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["DELETE"]
+        resources: ["deployments"]
+        scope: "Namespaced"
+    clientConfig:
+      service:
+        namespace: "NAMESPACE"
+        name: "SERVICE"
+        path: "/validate"
+      caBundle: "CA_BUNDLE"
+    admissionReviewVersions: ["v1", "v1beta1"]
+    sideEffects: None
+    timeoutSeconds: 5

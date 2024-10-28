@@ -1,0 +1,5 @@
+## Append samples of your project ##
+resources:
+- opencas-csi_v1alpha1_cache.yaml
+- opencas-csi_v1alpha1_driverinstance.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples

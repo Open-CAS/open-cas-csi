@@ -1,0 +1,101 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.12.0
+  name: driverinstances.csi.open-cas.com
+spec:
+  group: csi.open-cas.com
+  names:
+    kind: DriverInstance
+    listKind: DriverInstanceList
+    plural: driverinstances
+    singular: driverinstance
+  scope: Cluster
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: DriverInstance is the Schema for the driverinstances API Namespace/Name
+          determines Open-CAS CSI driver Namespace/Name
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: DriverInstanceSpec defines the desired state of DriverInstance
+            properties:
+              buildArgs:
+                additionalProperties:
+                  type: string
+                description: Specifies arguments required for building images (e.g.
+                  proxy)
+                type: object
+              driverConfig:
+                description: Contains configuration for deployment of Open-CAS CSI
+                  Driver
+                properties:
+                  casadmImage:
+                    description: Specifies location of management (casadm) image
+                    type: string
+                  controllerReplicas:
+                    description: Specifies how many copies of controller pod are to
+                      be deployed in the cluster (default=1).
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  driverImage:
+                    description: Specifies location of Open-CAS CSI Driver image
+                    type: string
+                  driverNamespace:
+                    description: Specifies Open-CAS CSI Driver instance namespace
+                    type: string
+                  protectedNamespace:
+                    description: Specifies namespace for intermediate pods (protected
+                      from deletion if webhook image provided)
+                    type: string
+                  webhookImage:
+                    description: Specifies location of webhook server image If not
+                      provided intermediate pods will not be protected
+                    type: string
+                required:
+                - driverImage
+                - driverNamespace
+                type: object
+              labels:
+                additionalProperties:
+                  type: string
+                description: Specifies additional labels for objects created by the
+                  operator.
+                type: object
+              logLevel:
+                description: Specifies how verbose logs should be.
+                type: integer
+              nodeSelector:
+                additionalProperties:
+                  type: string
+                description: Specifies node labels that will determine on which nodes
+                  the driver should provision volumes.
+                type: object
+            required:
+            - driverConfig
+            - nodeSelector
+            type: object
+          status:
+            description: DriverInstanceStatus defines the observed state of DriverInstance
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
